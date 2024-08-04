@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -55,7 +54,7 @@ func main() {
 	defer cancel()
 
 	// 画像ファイルを読み込み、base64エンコード
-	imageData, err := ioutil.ReadFile("test_image.jpg")
+	imageData, err := os.ReadFile("test_image.jpg")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,7 +77,7 @@ func main() {
 			if err != nil {
 				return err
 			}
-			return ioutil.WriteFile("output.pdf", buf, 0644)
+			return os.WriteFile("output.pdf", buf, 0644)
 		}),
 	); err != nil {
 		log.Fatal(err)
