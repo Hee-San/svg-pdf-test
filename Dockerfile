@@ -1,4 +1,4 @@
-FROM golang:1.17
+FROM golang:1.22
 
 # Chrome のインストール
 RUN apt-get update && apt-get install -y \
