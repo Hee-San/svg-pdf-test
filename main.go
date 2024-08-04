@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 
+	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 )
 
@@ -19,7 +21,7 @@ const htmlTemplate = `
 <body>
     <svg width="0" height="0" style="display: none;">
       <defs>
-		<image id="testImage" width="100" height="100" href="data:image/jpeg;base64,%s"/>
+        <image id="testImage" width="100" height="100" href="data:image/jpeg;base64,%s"/>
       </defs>
     </svg>
 
@@ -37,8 +39,23 @@ const htmlTemplate = `
 `
 
 func main() {
+	chromePath := os.Getenv("CHROME_PATH")
+	if chromePath == "" {
+		log.Fatal("CHROME_PATH environment variable is not set")
+	}
+
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.ExecPath(chromePath),
+	)
+
+	allocCtx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	defer cancel()
+
+	ctx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
+	defer cancel()
+
 	// 画像ファイルを読み込み、base64エンコード
-	imageData, err := ioutil.ReadFile("/app/test_image.jpg")
+	imageData, err := ioutil.ReadFile("test_image.jpg")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,28 +64,25 @@ func main() {
 	// HTMLを生成
 	html := fmt.Sprintf(htmlTemplate, base64Image)
 
-	// ChromeDPのコンテキストを設定
-	ctx, cancel := chromedp.NewContext(context.Background())
-	defer cancel()
-
-	// PDFのバイトスライスを格納する変数
-	var pdfBuffer []byte
-
-	// ChromeDPを使用してHTMLをPDFに変換
-	err = chromedp.Run(ctx,
-		chromedp.Navigate("data:text/html,"+html),
-		chromedp.WaitVisible("body", chromedp.ByQuery),
-		chromedp.PDF(&pdfBuffer, chromedp.PDFPrintBackground(true)),
-	)
-	if err != nil {
+	if err := chromedp.Run(ctx,
+		chromedp.Navigate("about:blank"),
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			frameTree, err := page.GetFrameTree().Do(ctx)
+			if err != nil {
+				return err
+			}
+			return page.SetDocumentContent(frameTree.Frame.ID, html).Do(ctx)
+		}),
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			buf, _, err := page.PrintToPDF().WithPrintBackground(false).Do(ctx)
+			if err != nil {
+				return err
+			}
+			return ioutil.WriteFile("output.pdf", buf, 0644)
+		}),
+	); err != nil {
 		log.Fatal(err)
 	}
 
-	// 生成されたPDFをファイルに保存
-	err = ioutil.WriteFile("/app/output.pdf", pdfBuffer, 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("PDF generated successfully: /app/output.pdf")
+	fmt.Println("PDF generated successfully: output.pdf")
 }
