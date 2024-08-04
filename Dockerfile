@@ -32,7 +32,7 @@ RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.d
 WORKDIR /app
 
 COPY go.mod .
-COPY go.sum .
+COPY go.sum* .
 RUN go mod download
 
 COPY . .
