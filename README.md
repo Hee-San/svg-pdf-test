@@ -38,6 +38,8 @@
 
 SVGの`<use>`要素は、既に定義されたSVG要素を再利用するための機能です。これにより、同じ画像やグラフィック要素を複数回描画する際に、データを重複させることなく参照できます。
 
+詳細な情報は[MDN Web Docs: <use>](https://developer.mozilla.org/ja/docs/Web/SVG/Element/use)を参照してください。
+
 ### 本プロジェクトでの使用例
 
 ```xml
