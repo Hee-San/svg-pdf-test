@@ -30,6 +30,50 @@
 
 また、この実験を通じて`chromedp/chromedp`ライブラリがPDF生成においてSVG参照を効率的に処理できることが確認されました。
 
+## SVGの`<use>`要素について
+
+このプロジェクトでは、SVGの`<use>`要素を活用して画像の効率的な再利用を実現しています。
+
+### `<use>`要素とは
+
+SVGの`<use>`要素は、既に定義されたSVG要素を再利用するための機能です。これにより、同じ画像やグラフィック要素を複数回描画する際に、データを重複させることなく参照できます。
+
+### 本プロジェクトでの使用例
+
+```xml
+<svg width="0" height="0" style="display: none;">
+  <defs>
+    <image id="testImage" width="100" height="100" href="data:image/jpeg;base64,..."/>
+  </defs>
+</svg>
+
+<h1>SVG Image Test (5 images)</h1>
+
+<svg width="100" height="100">
+  <use href="#testImage" />
+</svg>
+
+<svg width="100" height="100">
+  <use href="#testImage" />
+</svg>
+
+<svg width="100" height="100">
+  <use href="#testImage" />
+</svg>
+
+<svg width="100" height="100">
+  <use href="#testImage" />
+</svg>
+
+<svg width="100" height="100">
+  <use href="#testImage" />
+</svg>
+```
+
+この例では、`<defs>`内で画像を一度定義し、その後`<use>`要素で5回参照しています。実際のテストでは、この参照回数を1回から100回まで変化させて実験を行いました。
+`<use>`要素を使用することで、画像データは1回だけ保存され、後はその参照のみが追加されます。そのため、参照回数が増えてもファイルサイズの増加を最小限に抑えることができます。
+実験結果が示すように、この方法は画像の参照回数が大幅に増加しても、PDFサイズにはほとんど影響を与えません。
+
 ## セットアップと使用方法
 
 1. Go 1.x以降をインストールします。
